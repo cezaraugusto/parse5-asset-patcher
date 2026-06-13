@@ -138,8 +138,8 @@ export function extractAssets(
 
 /**
  * Resolves the output path an asset should be referenced by, given a map
- * of entry names to source files. When `filePath` is itself an entry — or
- * is referenced by an entry HTML file — the returned path is based on the
+ * of entry names to source files. When `filePath` is itself an entry, or
+ * is referenced by an entry HTML file, the returned path is based on the
  * entry name (`/<entryname><extension>`). Otherwise the original path is
  * kept, with its extension swapped for `extension`.
  *
