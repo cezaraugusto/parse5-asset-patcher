@@ -1,6 +1,13 @@
-# parse5-asset-patcher
+[npm-version-image]: https://img.shields.io/npm/v/parse5-asset-patcher.svg?color=0971fe
+[npm-version-url]: https://www.npmjs.com/package/parse5-asset-patcher
+[npm-downloads-image]: https://img.shields.io/npm/dm/parse5-asset-patcher.svg?color=2ecc40
+[npm-downloads-url]: https://www.npmjs.com/package/parse5-asset-patcher
+[action-image]: https://github.com/cezaraugusto/parse5-asset-patcher/actions/workflows/ci.yml/badge.svg?branch=main
+[action-url]: https://github.com/cezaraugusto/parse5-asset-patcher/actions
 
-> Parse, extract, and patch asset references in HTML documents.
+> Parse, extract, and patch asset references in HTML documents
+
+# parse5-asset-patcher [![Version][npm-version-image]][npm-version-url] [![Downloads][npm-downloads-image]][npm-downloads-url] [![workflow][action-image]][action-url]
 
 Bundlers and build tools constantly need to answer the same questions about an HTML file: which scripts, stylesheets, images, and other static files does it reference? Where do those references resolve on disk? And how should they be rewritten once the build relocates them?
 
