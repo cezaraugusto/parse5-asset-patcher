@@ -1,22 +1,24 @@
-import * as parse5utilities from 'parse5-utilities';
-import type { AssetReference, HtmlNode } from './types';
-import { cleanAssetUrl, isUrl } from './utils';
+import * as parse5utilities from 'parse5-utilities'
+
+import {cleanAssetUrl, isUrl} from './utils'
+
+import type {AssetReference, HtmlNode} from './types'
 
 /**
  * Parses an HTML string into a parse5 document (or fragment, when the
  * string is not a full document). Thin wrapper over `parse5-utilities`.
  */
-export function parseHtml(html: string): HtmlNode {
-  return parse5utilities.parse(html) as unknown as HtmlNode;
+export function parseHtml (html: string): HtmlNode {
+  return parse5utilities.parse(html) as unknown as HtmlNode
 }
 
 /**
  * Serializes a parse5 node (document, fragment, or element) back to an
  * HTML string.
  */
-export function serializeHtml(node: HtmlNode): string {
-  // biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
-  return parse5utilities.stringify(node as any);
+export function serializeHtml (node: HtmlNode): string {
+  // Biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
+  return parse5utilities.stringify(node as any)
 }
 
 /**
@@ -38,57 +40,60 @@ export function serializeHtml(node: HtmlNode): string {
  * @param node – Any parse5 node (document, `<head>`, `<body>`, element).
  * @param onAssetFound – Callback invoked once per discovered reference.
  */
-export function visitHtmlAssets(
+export function visitHtmlAssets (
   node: HtmlNode,
-  onAssetFound: (reference: AssetReference) => void,
+  onAssetFound: (reference: AssetReference) => void
 ): void {
   // Skip comment and text nodes
   if (node.nodeName === '#comment' || node.nodeName === '#text') {
-    return;
+    return
   }
 
   // Handle the current node first
   if (node.nodeName === 'script') {
-    const src = node.attrs?.find((attr) => attr.name === 'src')?.value;
+    const src = node.attrs?.find((attr) => attr.name === 'src')?.value
 
     // Some scripts have no src
-    if (!src) return;
+    if (!src) return
+
     // Do nothing for urls
-    if (isUrl(src)) return;
+    if (isUrl(src)) return
 
     onAssetFound({
       filePath: src,
       childNode: node,
-      assetType: 'script',
-    });
+      assetType: 'script'
+    })
   } else if (node.nodeName === 'link') {
-    const href = node.attrs?.find((attr) => attr.name === 'href')?.value;
-    const rel = node.attrs?.find((attr) => attr.name === 'rel')?.value;
+    const href = node.attrs?.find((attr) => attr.name === 'href')?.value
+    const rel = node.attrs?.find((attr) => attr.name === 'rel')?.value
     const imagesrcset = node.attrs?.find(
-      (attr) => attr.name === 'imagesrcset',
-    )?.value;
+      (attr) => attr.name === 'imagesrcset'
+    )?.value
 
     if (imagesrcset) {
       for (const candidate of imagesrcset.split(',')) {
-        const url = candidate.trim().split(/\s+/)[0];
+        const url = candidate.trim().split(/\s+/)[0]
 
-        if (!url) continue;
+        if (!url) continue
 
-        const { cleanPath } = cleanAssetUrl(url);
+        const {cleanPath} = cleanAssetUrl(url)
+
         if (cleanPath && !isUrl(cleanPath)) {
           onAssetFound({
             filePath: cleanPath,
             childNode: node,
-            assetType: 'staticHref',
-          });
+            assetType: 'staticHref'
+          })
         }
       }
     }
 
     // Some links have no href
-    if (!href) return;
+    if (!href) return
+
     // Do nothing for urls
-    if (isUrl(href)) return;
+    if (isUrl(href)) return
 
     // Assume users ignored the "stylesheet" attribute,
     // but ensure it's not an icon or something else.
@@ -106,14 +111,14 @@ export function visitHtmlAssets(
       onAssetFound({
         filePath: href,
         childNode: node,
-        assetType: 'staticHref',
-      });
+        assetType: 'staticHref'
+      })
     } else {
       onAssetFound({
         filePath: href,
         childNode: node,
-        assetType: 'css',
-      });
+        assetType: 'css'
+      })
     }
   } else if (
     node.nodeName === 'audio' ||
@@ -126,62 +131,72 @@ export function visitHtmlAssets(
     node.nodeName === 'video'
   ) {
     // Static assets with src attribute
-    const src = node.attrs?.find((attr) => attr.name === 'src')?.value;
+    const src = node.attrs?.find((attr) => attr.name === 'src')?.value
 
     // Some elements have no src
-    if (!src) return;
+    if (!src) return
+
     // Do nothing for urls
-    if (isUrl(src)) return;
+    if (isUrl(src)) return
 
     onAssetFound({
       filePath: src,
       childNode: node,
-      assetType: 'staticSrc',
-    });
+      assetType: 'staticSrc'
+    })
 
     // Handle srcset for responsive images and sources
-    const srcset = node.attrs?.find((attr) => attr.name === 'srcset')?.value;
+    const srcset = node.attrs?.find((attr) => attr.name === 'srcset')?.value
+
     if (srcset) {
       // Format: "image1.png 1x, image2.png 2x" or with widths
-      const candidates = srcset.split(',');
+      const candidates = srcset.split(',')
+
       for (const candidate of candidates) {
-        const parts = candidate.trim().split(/\s+/);
-        const url = parts[0];
-        if (!url) continue;
-        const { cleanPath } = cleanAssetUrl(url);
+        const parts = candidate.trim().split(/\s+/)
+        const url = parts[0]
+
+        if (!url) continue
+
+        const {cleanPath} = cleanAssetUrl(url)
+
         if (cleanPath && !isUrl(cleanPath)) {
           onAssetFound({
             filePath: cleanPath,
             childNode: node,
-            assetType: 'staticSrc',
-          });
+            assetType: 'staticSrc'
+          })
         }
       }
     }
 
     // Handle video poster
     if (node.nodeName === 'video') {
-      const poster = node.attrs?.find((attr) => attr.name === 'poster')?.value;
+      const poster = node.attrs?.find((attr) => attr.name === 'poster')?.value
+
       if (poster && !isUrl(poster)) {
-        const { cleanPath } = cleanAssetUrl(poster);
+        const {cleanPath} = cleanAssetUrl(poster)
+
         if (cleanPath) {
           onAssetFound({
             filePath: cleanPath,
             childNode: node,
-            assetType: 'staticSrc',
-          });
+            assetType: 'staticSrc'
+          })
         }
       }
     }
   }
 
   // Then handle child nodes recursively
-  const { childNodes = [] } = node;
+  const {childNodes = []} = node
+
   for (const childNode of childNodes) {
     // Skip comment and text nodes
     if (childNode.nodeName === '#comment' || childNode.nodeName === '#text') {
-      continue;
+      continue
     }
-    visitHtmlAssets(childNode, onAssetFound);
+
+    visitHtmlAssets(childNode, onAssetFound)
   }
 }

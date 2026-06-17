@@ -1,22 +1,22 @@
-export { extractAssets, getDeclaredAssetPath } from './extract-assets';
-export { injectScript, injectStylesheet } from './inject';
-export { parseHtml, serializeHtml, visitHtmlAssets } from './parse-html';
+export {extractAssets, getDeclaredAssetPath} from './extract-assets'
+export {injectScript, injectStylesheet} from './inject'
+export {parseHtml, serializeHtml, visitHtmlAssets} from './parse-html'
 export {
   type PatchHtmlOptions,
   type PatchWarning,
   patchHtml,
   patchHtmlNested,
   patchStaticAsset,
-  setAssetReference,
-} from './patch-html';
+  setAssetReference
+} from './patch-html'
 export type {
   AssetReference,
   AssetType,
   ExtractedAssets,
   FilepathList,
   HtmlAttribute,
-  HtmlNode,
-} from './types';
+  HtmlNode
+} from './types'
 export {
   cleanAssetUrl,
   computePosixRelative,
@@ -26,5 +26,5 @@ export {
   isFromFilepathList,
   isHttpLike,
   isSpecialScheme,
-  isUrl,
-} from './utils';
+  isUrl
+} from './utils'

@@ -1,17 +1,20 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as parse5utilities from 'parse5-utilities';
-import { getDeclaredAssetPath } from './extract-assets';
-import { injectScript, injectStylesheet } from './inject';
-import { visitHtmlAssets } from './parse-html';
-import type { AssetType, FilepathList, HtmlAttribute, HtmlNode } from './types';
+import * as fs from 'node:fs'
+import * as path from 'node:path'
+
+import * as parse5utilities from 'parse5-utilities'
+
+import {getDeclaredAssetPath} from './extract-assets'
+import {injectScript, injectStylesheet} from './inject'
+import {visitHtmlAssets} from './parse-html'
 import {
   cleanAssetUrl,
   getBaseHref,
   getExtname,
   getFilePath,
-  isFromFilepathList,
-} from './utils';
+  isFromFilepathList
+} from './utils'
+
+import type {AssetType, FilepathList, HtmlAttribute, HtmlNode} from './types'
 
 /**
  * A warning emitted while patching, e.g. when a root-relative reference
@@ -65,15 +68,16 @@ export interface PatchHtmlOptions {
  * @param url – The new reference value (query/hash included as desired).
  * @returns The updated node.
  */
-export function setAssetReference(
+export function setAssetReference (
   node: HtmlNode,
   assetType: AssetType,
-  url: string,
+  url: string
 ): HtmlNode {
   const attribute =
-    assetType === 'script' || assetType === 'staticSrc' ? 'src' : 'href';
-  // biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
-  return parse5utilities.setAttribute(node as any, attribute, url) as HtmlNode;
+    assetType === 'script' || assetType === 'staticSrc' ? 'src' : 'href'
+
+  // Biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
+  return parse5utilities.setAttribute(node as any, attribute, url) as HtmlNode
 }
 
 /**
@@ -88,7 +92,7 @@ export function setAssetReference(
  *
  * Query strings and hashes are preserved in all cases.
  */
-export function patchStaticAsset(params: {
+export function patchStaticAsset (params: {
   /** Path of the HTML file being patched. */
   htmlEntry: string;
   /** Directory of the HTML file. */
@@ -121,19 +125,21 @@ export function patchStaticAsset(params: {
     hash,
     baseHref,
     includeList,
-    extname,
-  } = params;
+    extname
+  } = params
 
-  let node = params.node;
+  let {node} = params
 
   if (isFromFilepathList(absolutePath, includeList)) {
-    const filepath = getDeclaredAssetPath(includeList, absolutePath, extname);
+    const filepath = getDeclaredAssetPath(includeList, absolutePath, extname)
+
     node = setAssetReference(
       node,
       assetType,
-      filepath + (search || '') + (hash || ''),
-    );
-    return node;
+      filepath + (search || '') + (hash || '')
+    )
+
+    return node
   }
 
   if (cleanPath.startsWith('/')) {
@@ -141,57 +147,61 @@ export function patchStaticAsset(params: {
     node = setAssetReference(
       node,
       assetType,
-      cleanPath + (search || '') + (hash || ''),
-    );
-    return node;
+      cleanPath + (search || '') + (hash || '')
+    )
+
+    return node
   }
 
   const baseJoin =
     baseHref && !/^\w+:\/\//.test(baseHref)
       ? path.resolve(htmlDir, baseHref)
-      : htmlDir;
-  const fromRoot = path.parse(baseJoin).root;
-  const toRoot = path.parse(absolutePath).root;
+      : htmlDir
+
+  const fromRoot = path.parse(baseJoin).root
+  const toRoot = path.parse(absolutePath).root
   const relativeFromHtml =
     fromRoot &&
     toRoot &&
     String(fromRoot).toLowerCase() !== String(toRoot).toLowerCase()
       ? path.basename(absolutePath)
-      : path.relative(baseJoin, absolutePath);
-  const posixRelative = relativeFromHtml.split(path.sep).join('/');
-  const filepath = path.posix.join('assets', posixRelative);
+      : path.relative(baseJoin, absolutePath)
+
+  const posixRelative = relativeFromHtml.split(path.sep).join('/')
+  const filepath = path.posix.join('assets', posixRelative)
+
   if (fs.existsSync(absolutePath)) {
     node = setAssetReference(
       node,
       assetType,
-      getFilePath(filepath, '', true) + (search || '') + (hash || ''),
-    );
+      getFilePath(filepath, '', true) + (search || '') + (hash || '')
+    )
   }
-  return node;
+  return node
 }
 
-function warnIfPublicRootAssetMissing(
+function warnIfPublicRootAssetMissing (
   htmlEntry: string,
   cleanPath: string,
-  onWarning?: (warning: PatchWarning) => void,
+  onWarning?: (warning: PatchWarning) => void
 ): void {
-  if (!onWarning) return;
+  if (!onWarning) return
 
-  const projectDir = path.dirname(path.dirname(htmlEntry));
-  const publicCandidate = path.join(projectDir, 'public', cleanPath.slice(1));
+  const projectDir = path.dirname(path.dirname(htmlEntry))
+  const publicCandidate = path.join(projectDir, 'public', cleanPath.slice(1))
 
-  if (fs.existsSync(publicCandidate)) return;
+  if (fs.existsSync(publicCandidate)) return
 
   onWarning({
     message: `Missing asset in ${htmlEntry}. Paths starting with '/' are resolved from the output root (served from 'public/'), not the source directory. Update the reference to point to a file that exists.`,
     file: htmlEntry,
-    assetPath: cleanPath,
-  });
+    assetPath: cleanPath
+  })
 }
 
 const removeNode = (node: HtmlNode): HtmlNode =>
-  // biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
-  parse5utilities.remove(node as any) as HtmlNode;
+  // Biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
+  parse5utilities.remove(node as any) as HtmlNode
 
 /**
  * Patches an HTML entry file for bundling:
@@ -213,24 +223,24 @@ const removeNode = (node: HtmlNode): HtmlNode =>
  * @param options – See {@link PatchHtmlOptions}.
  * @returns The patched HTML string, or `''` when no `<html>` node exists.
  */
-export function patchHtml(
+export function patchHtml (
   htmlEntry: string,
   feature: string,
-  options: PatchHtmlOptions = {},
+  options: PatchHtmlOptions = {}
 ): string {
-  const { includeList = {}, cssHref, scriptSrc } = options;
+  const {includeList = {}, cssHref, scriptSrc} = options
 
-  const htmlFile = fs.readFileSync(htmlEntry, { encoding: 'utf8' });
-  const htmlDocument = parse5utilities.parse(htmlFile) as unknown as HtmlNode;
-  const baseHref = getBaseHref(htmlDocument);
+  const htmlFile = fs.readFileSync(htmlEntry, {encoding: 'utf8'})
+  const htmlDocument = parse5utilities.parse(htmlFile) as unknown as HtmlNode
+  const baseHref = getBaseHref(htmlDocument)
 
-  let hasCssEntry = Boolean(options.hasCssEntry);
-  let hasJsEntry = false;
-  let firstScriptAttrs: HtmlAttribute[] | undefined;
-  let firstLinkAttrs: HtmlAttribute[] | undefined;
+  let hasCssEntry = Boolean(options.hasCssEntry)
+  let hasJsEntry = false
+  let firstScriptAttrs: HtmlAttribute[] | undefined
+  let firstLinkAttrs: HtmlAttribute[] | undefined
 
   for (const node of htmlDocument.childNodes || []) {
-    if (node.nodeName !== 'html') continue;
+    if (node.nodeName !== 'html') continue
 
     for (const htmlChildNode of node.childNodes || []) {
       // We don't really care whether the asset is in the head or body
@@ -239,14 +249,14 @@ export function patchHtml(
         htmlChildNode.nodeName === 'head' ||
         htmlChildNode.nodeName === 'body'
       ) {
-        visitHtmlAssets(htmlChildNode, ({ filePath, childNode, assetType }) => {
-          const htmlDir = path.dirname(htmlEntry);
-          const { cleanPath, hash, search } = cleanAssetUrl(filePath);
-          const absolutePath = path.resolve(htmlDir, cleanPath);
-          const extname = getExtname(absolutePath);
-          // public-root absolute paths are preserved; others become bundled entries
+        visitHtmlAssets(htmlChildNode, ({filePath, childNode, assetType}) => {
+          const htmlDir = path.dirname(htmlEntry)
+          const {cleanPath, hash, search} = cleanAssetUrl(filePath)
+          const absolutePath = path.resolve(htmlDir, cleanPath)
+          const extname = getExtname(absolutePath)
+          // Public-root absolute paths are preserved; others become bundled entries
 
-          let thisChildNode = childNode;
+          let thisChildNode = childNode
 
           switch (assetType) {
             // For script types, we have two cases:
@@ -260,19 +270,22 @@ export function patchHtml(
                 thisChildNode = setAssetReference(
                   thisChildNode,
                   'script',
-                  cleanPath + (search || '') + (hash || ''),
-                );
+                  cleanPath + (search || '') + (hash || '')
+                )
               } else {
                 if (!firstScriptAttrs) {
                   firstScriptAttrs = Array.isArray(thisChildNode.attrs)
                     ? [...thisChildNode.attrs]
-                    : [];
+                    : []
                 }
-                thisChildNode = removeNode(thisChildNode);
-                hasJsEntry = true;
+
+                thisChildNode = removeNode(thisChildNode)
+                hasJsEntry = true
               }
-              break;
+
+              break
             }
+
             // For CSS types, we have the same cases as script types.
             case 'css': {
               if (cleanPath.startsWith('/')) {
@@ -280,19 +293,22 @@ export function patchHtml(
                 thisChildNode = setAssetReference(
                   thisChildNode,
                   'css',
-                  cleanPath + (search || '') + (hash || ''),
-                );
+                  cleanPath + (search || '') + (hash || '')
+                )
               } else {
                 if (!firstLinkAttrs) {
                   firstLinkAttrs = Array.isArray(thisChildNode.attrs)
                     ? [...thisChildNode.attrs]
-                    : [];
+                    : []
                 }
-                thisChildNode = removeNode(thisChildNode);
-                hasCssEntry = true;
+
+                thisChildNode = removeNode(thisChildNode)
+                hasCssEntry = true
               }
-              break;
+
+              break
             }
+
             // For static assets:
             // 1. If the file is a known entry, the reference is rewritten
             // to the entry's output path.
@@ -312,14 +328,15 @@ export function patchHtml(
                 baseHref,
                 includeList,
                 extname,
-                node: thisChildNode,
-              });
-              break;
+                node: thisChildNode
+              })
+              break
             }
+
             default:
-              break;
+              break
           }
-        });
+        })
       }
 
       if (htmlChildNode.nodeName === 'head') {
@@ -328,8 +345,8 @@ export function patchHtml(
           injectStylesheet(
             htmlChildNode,
             cssHref || getFilePath(feature, '.css', true),
-            firstLinkAttrs,
-          );
+            firstLinkAttrs
+          )
         }
       }
 
@@ -341,18 +358,18 @@ export function patchHtml(
           injectScript(
             htmlChildNode,
             scriptSrc || getFilePath(feature, '.js', true),
-            firstScriptAttrs,
-          );
+            firstScriptAttrs
+          )
         }
       }
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
-    return parse5utilities.stringify(htmlDocument as any);
+    // Biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
+    return parse5utilities.stringify(htmlDocument as any)
   }
 
   // If we get here, we didn't find an html node
-  return '';
+  return ''
 }
 
 /**
@@ -366,83 +383,89 @@ export function patchHtml(
  *   root-relative reference does not exist under `<projectRoot>/public`.
  * @returns The patched HTML string, or `''` when no `<html>` node exists.
  */
-export function patchHtmlNested(
+export function patchHtmlNested (
   htmlEntry: string,
-  options: { onWarning?: (warning: PatchWarning) => void } = {},
+  options: {onWarning?: (warning: PatchWarning) => void} = {}
 ): string {
-  const { onWarning } = options;
+  const {onWarning} = options
 
-  const htmlFile = fs.readFileSync(htmlEntry, { encoding: 'utf8' });
-  const htmlDocument = parse5utilities.parse(htmlFile) as unknown as HtmlNode;
+  const htmlFile = fs.readFileSync(htmlEntry, {encoding: 'utf8'})
+  const htmlDocument = parse5utilities.parse(htmlFile) as unknown as HtmlNode
 
   for (const node of htmlDocument.childNodes || []) {
-    if (node.nodeName !== 'html') continue;
+    if (node.nodeName !== 'html') continue
 
     for (const htmlChildNode of node.childNodes || []) {
       if (
         htmlChildNode.nodeName === 'head' ||
         htmlChildNode.nodeName === 'body'
       ) {
-        visitHtmlAssets(htmlChildNode, ({ filePath, childNode, assetType }) => {
-          const htmlDir = path.dirname(htmlEntry);
-          const { cleanPath, hash, search } = cleanAssetUrl(filePath);
-          const absolutePath = path.resolve(htmlDir, cleanPath);
-          // public-root absolute paths are preserved; others are emitted or linked
+        visitHtmlAssets(htmlChildNode, ({filePath, childNode, assetType}) => {
+          const htmlDir = path.dirname(htmlEntry)
+          const {cleanPath, hash, search} = cleanAssetUrl(filePath)
+          const absolutePath = path.resolve(htmlDir, cleanPath)
+          // Public-root absolute paths are preserved; others are emitted or linked
 
-          let thisChildNode = childNode;
+          let thisChildNode = childNode
 
           switch (assetType) {
             case 'script':
             case 'css': {
               if (cleanPath.startsWith('/')) {
-                warnIfPublicRootAssetMissing(htmlEntry, cleanPath, onWarning);
+                warnIfPublicRootAssetMissing(htmlEntry, cleanPath, onWarning)
 
                 // Keep as-is (but normalize URL for query/hash)
                 thisChildNode = setAssetReference(
                   thisChildNode,
                   assetType,
-                  cleanPath + (search || '') + (hash || ''),
-                );
+                  cleanPath + (search || '') + (hash || '')
+                )
               }
-              break;
+
+              break
             }
+
             case 'staticHref':
             case 'staticSrc': {
               if (cleanPath.startsWith('/')) {
-                warnIfPublicRootAssetMissing(htmlEntry, cleanPath, onWarning);
+                warnIfPublicRootAssetMissing(htmlEntry, cleanPath, onWarning)
                 thisChildNode = setAssetReference(
                   thisChildNode,
                   assetType,
-                  cleanPath + (search || '') + (hash || ''),
-                );
+                  cleanPath + (search || '') + (hash || '')
+                )
               } else {
                 if (fs.existsSync(absolutePath)) {
-                  const relativeFromHtml = path.relative(htmlDir, absolutePath);
+                  const relativeFromHtml = path.relative(htmlDir, absolutePath)
                   const posixRelative = relativeFromHtml
                     .split(path.sep)
-                    .join('/');
-                  const filepath = path.posix.join('assets', posixRelative);
+                    .join('/')
+
+                  const filepath = path.posix.join('assets', posixRelative)
+
                   thisChildNode = setAssetReference(
                     thisChildNode,
                     assetType,
                     getFilePath(filepath, '', true) +
                       (search || '') +
-                      (hash || ''),
-                  );
+                      (hash || '')
+                  )
                 }
               }
-              break;
+
+              break
             }
+
             default:
-              break;
+              break
           }
-        });
+        })
       }
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
-    return parse5utilities.stringify(htmlDocument as any);
+    // Biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
+    return parse5utilities.stringify(htmlDocument as any)
   }
 
-  return '';
+  return ''
 }

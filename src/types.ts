@@ -17,7 +17,7 @@ export interface HtmlNode {
   childNodes?: HtmlNode[];
   value?: string;
   data?: string;
-  // biome-ignore lint/suspicious/noExplicitAny: parse5 nodes carry extra, version-specific fields
+  // Biome-ignore lint/suspicious/noExplicitAny: parse5 nodes carry extra, version-specific fields
   [key: string]: any;
 }
 
@@ -31,7 +31,7 @@ export interface HtmlNode {
  * - `staticHref` – static reference held in an `href`-like attribute
  *                  (icons, manifests, preloads, `imagesrcset` candidates)
  */
-export type AssetType = 'script' | 'css' | 'staticSrc' | 'staticHref';
+export type AssetType = 'script' | 'css' | 'staticSrc' | 'staticHref'
 
 /**
  * An asset reference discovered by {@link visitHtmlAssets}.
@@ -64,4 +64,4 @@ export interface ExtractedAssets {
  * rewrite references that are known compilation entries to their
  * entry-based output path (`/<entryname><ext>`).
  */
-export type FilepathList = Record<string, string | string[] | undefined>;
+export type FilepathList = Record<string, string | string[] | undefined>

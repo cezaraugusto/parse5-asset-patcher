@@ -1,5 +1,6 @@
-import * as parse5utilities from 'parse5-utilities';
-import type { HtmlAttribute, HtmlNode } from './types';
+import * as parse5utilities from 'parse5-utilities'
+
+import type {HtmlAttribute, HtmlNode} from './types'
 
 /**
  * Creates a `<script src="...">` node and appends it to `parentNode`
@@ -11,27 +12,31 @@ import type { HtmlAttribute, HtmlNode } from './types';
  *   tag; `type`, `defer`, and `async` are propagated to the injected tag.
  * @returns The injected script node.
  */
-export function injectScript(
+export function injectScript (
   parentNode: HtmlNode,
   src: string,
-  inheritAttrs?: HtmlAttribute[],
+  inheritAttrs?: HtmlAttribute[]
 ): HtmlNode {
-  const scriptTag = parse5utilities.createNode('script');
-  scriptTag.attrs = [{ name: 'src', value: src }];
-  const propagateScriptAttrs = new Set(['type', 'defer', 'async']);
+  const scriptTag = parse5utilities.createNode('script')
+
+  scriptTag.attrs = [{name: 'src', value: src}]
+  const propagateScriptAttrs = new Set(['type', 'defer', 'async'])
+
   if (inheritAttrs) {
     for (const attr of inheritAttrs) {
       if (
         propagateScriptAttrs.has(attr.name) &&
         !scriptTag.attrs.find((a) => a.name === attr.name)
       ) {
-        scriptTag.attrs.push({ name: attr.name, value: attr.value });
+        scriptTag.attrs.push({name: attr.name, value: attr.value})
       }
     }
   }
-  // biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
-  parse5utilities.append(parentNode as any, scriptTag);
-  return scriptTag as unknown as HtmlNode;
+
+  // Biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
+  parse5utilities.append(parentNode as any, scriptTag)
+
+  return scriptTag as unknown as HtmlNode
 }
 
 /**
@@ -45,35 +50,39 @@ export function injectScript(
  *   and `disabled` are propagated to the injected tag.
  * @returns The injected link node.
  */
-export function injectStylesheet(
+export function injectStylesheet (
   parentNode: HtmlNode,
   href: string,
-  inheritAttrs?: HtmlAttribute[],
+  inheritAttrs?: HtmlAttribute[]
 ): HtmlNode {
-  const linkTag = parse5utilities.createNode('link');
+  const linkTag = parse5utilities.createNode('link')
+
   linkTag.attrs = [
-    { name: 'rel', value: 'stylesheet' },
-    { name: 'href', value: href },
-  ];
+    {name: 'rel', value: 'stylesheet'},
+    {name: 'href', value: href}
+  ]
   const propagateLinkAttrs = new Set([
     'media',
     'crossorigin',
     'integrity',
     'referrerpolicy',
     'type',
-    'disabled',
-  ]);
+    'disabled'
+  ])
+
   if (inheritAttrs) {
     for (const attr of inheritAttrs) {
       if (
         propagateLinkAttrs.has(attr.name) &&
         !linkTag.attrs.find((a) => a.name === attr.name)
       ) {
-        linkTag.attrs.push({ name: attr.name, value: attr.value });
+        linkTag.attrs.push({name: attr.name, value: attr.value})
       }
     }
   }
-  // biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
-  parse5utilities.append(parentNode as any, linkTag);
-  return linkTag as unknown as HtmlNode;
+
+  // Biome-ignore lint/suspicious/noExplicitAny: parse5-utilities expects its own node union
+  parse5utilities.append(parentNode as any, linkTag)
+
+  return linkTag as unknown as HtmlNode
 }
