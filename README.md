@@ -135,6 +135,14 @@ injectStylesheet(headNode, '/main.css', [{ name: 'media', value: 'print' }]);
 
 Types: `AssetType`, `AssetReference`, `ExtractedAssets`, `FilepathList`, `HtmlNode`, `HtmlAttribute`, `PatchHtmlOptions`, `PatchWarning`.
 
+## Related projects
+
+* [browser-extension-manifest-fields](https://github.com/cezaraugusto/browser-extension-manifest-fields)
+* [browser-extension-capabilities](https://github.com/cezaraugusto/browser-extension-capabilities)
+* [browser-extension-compat-data](https://github.com/cezaraugusto/browser-extension-compat-data)
+* [extension-from-store](https://github.com/cezaraugusto/extension-from-store)
+* [chrome-extension-manifest-json-schema](https://github.com/cezaraugusto/chrome-extension-manifest-json-schema)
+
 ## License
 
 MIT (c) Cezar Augusto.
