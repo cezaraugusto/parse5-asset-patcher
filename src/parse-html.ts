@@ -44,12 +44,10 @@ export function visitHtmlAssets (
   node: HtmlNode,
   onAssetFound: (reference: AssetReference) => void
 ): void {
-  // Skip comment and text nodes
   if (node.nodeName === '#comment' || node.nodeName === '#text') {
     return
   }
 
-  // Handle the current node first
   if (node.nodeName === 'script') {
     const src = node.attrs?.find((attr) => attr.name === 'src')?.value
 
@@ -130,7 +128,6 @@ export function visitHtmlAssets (
     node.nodeName === 'track' ||
     node.nodeName === 'video'
   ) {
-    // Static assets with src attribute
     const src = node.attrs?.find((attr) => attr.name === 'src')?.value
 
     // Some elements have no src
@@ -188,11 +185,9 @@ export function visitHtmlAssets (
     }
   }
 
-  // Then handle child nodes recursively
   const {childNodes = []} = node
 
   for (const childNode of childNodes) {
-    // Skip comment and text nodes
     if (childNode.nodeName === '#comment' || childNode.nodeName === '#text') {
       continue
     }
