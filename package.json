@@ -5,7 +5,7 @@
     "url": "https://github.com/cezaraugusto/parse5-asset-patcher.git"
   },
   "name": "parse5-asset-patcher",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Parse, extract, and patch asset references in HTML documents",
   "homepage": "https://www.npmjs.com/package/parse5-asset-patcher",
   "type": "module",
